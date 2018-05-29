@@ -16,7 +16,7 @@ var success = function (data) {
   return data;
   // console.log(JSON.parse(data));
 };
-var atlantaArr = [];
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
 
@@ -33,7 +33,7 @@ router.get('/', function (req, res, next) {
     [34.0521947, -84.598989], // experimental store
   ]
   
-
+  const atlantaArr = [];
 for (var i = 0; i < locs.length; i++) {
 
   var lat = locs[i][0]
@@ -63,43 +63,45 @@ for (var i = 0; i < locs.length; i++) {
   // var tester = "I am a test"
   // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
-results.then((tweets)=>{
-    var avg = 0
-    tweets.forEach(function (s) {
-      const tree = processor.parse(s);
-      processor.run(tree);
-      const sentenceNode = tree.children[0].data
-      avg += tree.children[0].data.polarity
-      atlantaArr.push(sentenceNode)
-      // console.log(tree.children[0].data)
+  results.then((tweets)=>{
+      var avg = 0
+      tweets.forEach(function (s) {
+        const tree = processor.parse(s);
+        processor.run(tree);
+        const sentenceNode = tree.children[0].data
+        avg += tree.children[0].data.polarity
+        atlantaArr.push(sentenceNode)
+        // console.log(tree.children[0].data)
+      })
+      avg /= tweets.length
+      // console.log("average rating: ", avg)
+      atlantaArr.push(avg)
+      console.log("INSIDE LENGTH", atlantaArr.length)
     })
-    avg /= tweets.length
-    // console.log("average rating: ", avg)
-    atlantaArr.push(avg)
-    console.log("INSIDE LENGTH", atlantaArr.length)
-  })
-}
-console.log("OUTSIDE LENGTH",atlantaArr.length)
-// const toPush = new Promise((resolve, reject)=>{
-//   if (atlantaArr === undefined){
-//     reject("no good")
-//   }
-//   else{
-//     resolve(atlantaArr)
-//   }
-// })
-// toPush.then((atlantaArr)=> {
-//   console.log("heeeere",atlantaArr)
-//   res.json(atlantaArr)
-// })
-  // Promise.all(atlantaArr).then((resovle, reject)=>{
 
+    // ***** return some promises?
+    // tweets.map((s)=>{
+    //   return new Promise((resolve, reject)=>{
+        
+    //   })
+    // })
+
+    //  **** trying to get the varible in scope
+  // results.then((atlantaArr)=>{
+  //   const thing = atlantaArr
   // })
+}
+
+
 
 
   // Message Input
   res.render('index', { title: 'Express' });
 });
+router.get("/data", function(req, res, next){
+  console.log("here go",crap.length)
+  res.render('data', {data: crap})
+})
 
 module.exports = router;
 
