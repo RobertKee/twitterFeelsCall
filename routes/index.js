@@ -23,7 +23,7 @@ router.get('/', function (req, res, next) {
   // console.log(config)
 
   var dist = `120mi`
-  
+
   var locs = [
     [43.615852, -116.282355], // idaho gps
     [48.785569, -122.47977], // washington state
@@ -32,24 +32,24 @@ router.get('/', function (req, res, next) {
     [32.752141, -117.213786], // san diego
     [34.0521947, -84.598989], // experimental store
   ]
-  
+
   const atlantaArr = [];
-  const results = locs.map((locData,i)=>{
-     return new Promise((resolve, reject)=>{
+  const results = locs.map((locData, i) => {
+    return new Promise((resolve, reject) => {
       var lat = locs[i][0]
       var long = locs[i][1]
       // console.log("twitter obj: ", twitter)
       var tweets = []
-        twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
-          const array = JSON.parse(data).statuses.map((data, index) => {
-            tweets.push(data.text)
-          })
-          if(tweets.length === 0){
-            reject("there are no tweets");
-          }else{
-            resolve(tweets)
-          }
+      twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
+        const array = JSON.parse(data).statuses.map((data, index) => {
+          tweets.push(data.text)
         })
+        if (tweets.length === 0) {
+          reject("there are no tweets");
+        } else {
+          resolve(tweets)
+        }
+      })
     });
   });
 
@@ -57,58 +57,62 @@ router.get('/', function (req, res, next) {
   const inspect = require('unist-util-inspect');
   const unified = require('unified');
   const english = require('retext-english');
-  const sentiment = require('retext-sentiment'); 
+  const sentiment = require('retext-sentiment');
   // const example = ["I hate forgetting to bring a book somewhere I definitely should have brought a book to", "This product is not bad at all", "Hai sexy"]
   // var tester = "I am a test"
   // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
-  Promise.all(results).then((sixLocTweets)=>{
+  Promise.all(results).then((sixLocTweets) => {
     var processor = unified()
       .use(english)
       .use(sentiment);
 
-      let tweetArray = []
-      var avg = 0
-      console.log(sixLocTweets)
-      sixLocTweets[0].forEach(function (s,i) {
-          // console.log(`I have run ${i} times`);
-          // console.log(s)
-          const tree = processor.parse(s);
-          processor.run(tree);
-          // console.log(tree)
+    let tweetArray = []
+    var avg = 0
+    // console.log(sixLocTweets)
+    for (var j = 0; j < sixLocTweets.length; j++) {
+      avg = 0
+      sixLocTweets[j].forEach(function (s, i) {
+        // console.log(`I have run ${i} times`);
+        // console.log(s)
+        const tree = processor.parse(s);
+        processor.run(tree);
+        // console.log(tree)
 
+        if (tree.children[0]) {
+          const sentenceNode = tree.children[0].data
+          avg += tree.children[0].data.polarity
+          tweetArray.push(sentenceNode)
+        }
 
-          if(tree.children[0]){
-            const sentenceNode = tree.children[0].data
-            avg += tree.children[0].data.polarity
-            tweetArray.push(sentenceNode)
-          }
-          // // console.log(tree.children[0].data)
-          // console.log(tweetArray.length)
-          avg /= sixLocTweets.length
-        // console.log("average rating: ", avg)
-          tweetArray.push(avg)
+        // // console.log(tree.children[0].data)
+        // console.log(tweetArray.length)
+
         // console.log("INSIDE LENGTH", tweetArray.length)
-          console.log(tweetArray)
+        console.log(tweetArray)
       })
-      res.json(tweetArray)
-    })
+      avg /= sixLocTweets[j].length
+      tweetArray.push(avg)
+      console.log("average rating: ", avg)
+    }
+    res.json(tweetArray)
+  })
 
-      // console.log(tweetsPromises);
-      // Promise.all(tweetsPromises).then((noWayThisWorkedData)=>{
-      //   console.log("Data is back.");
-      // })
+  // console.log(tweetsPromises);
+  // Promise.all(tweetsPromises).then((noWayThisWorkedData)=>{
+  //   console.log("Data is back.");
+  // })
 
 
 
-    // ***** return some promises?
-    // tweets.map((s)=>{
-    //   return new Promise((resolve, reject)=>{
-        
-    //   })
-    // })
+  // ***** return some promises?
+  // tweets.map((s)=>{
+  //   return new Promise((resolve, reject)=>{
 
-    //  **** trying to get the varible in scope
+  //   })
+  // })
+
+  //  **** trying to get the varible in scope
   // results.then((atlantaArr)=>{
   //   const thing = atlantaArr
   // })
@@ -120,9 +124,9 @@ router.get('/', function (req, res, next) {
   // Message Input
   // res.render('index', { title: 'Express' });
 });
-router.get("/data", function(req, res, next){
-  console.log("here go",crap.length)
-  res.render('data', {data: crap})
+router.get("/data", function (req, res, next) {
+  console.log("here go", crap.length)
+  res.render('data', { data: crap })
 })
 
 module.exports = router;
