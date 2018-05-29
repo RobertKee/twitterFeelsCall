@@ -34,50 +34,72 @@ router.get('/', function (req, res, next) {
   ]
   
   const atlantaArr = [];
-for (var i = 0; i < locs.length; i++) {
+  const results = locs.map((locData,i)=>{
+     return new Promise((resolve, reject)=>{
+      var lat = locs[i][0]
+      var long = locs[i][1]
+      // console.log("twitter obj: ", twitter)
+      var tweets = []
+        twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
+          const array = JSON.parse(data).statuses.map((data, index) => {
+            tweets.push(data.text)
+          })
+          if(tweets.length === 0){
+            reject("there are no tweets");
+          }else{
+            resolve(tweets)
+          }
+        })
+    });
+  });
 
-  var lat = locs[i][0]
-  var long = locs[i][1]
-  // console.log("twitter obj: ", twitter)
-  var tweets = []
-  const results = new Promise((resolve, reject)=>{
-    twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
-      const array = JSON.parse(data).statuses.map((data, index) => {
-        tweets.push(data.text)
-      })
-      if(tweets.length === 0){
-        reject("piss off");
-      }else{
-        resolve(tweets)
-      }
-    })
-  })
   // console.log(tweets)
-  var inspect = require('unist-util-inspect');
-  var unified = require('unified');
-  var english = require('retext-english');
-  var sentiment = require('retext-sentiment'); var processor = unified()
-    .use(english)
-    .use(sentiment);
+  const inspect = require('unist-util-inspect');
+  const unified = require('unified');
+  const english = require('retext-english');
+  const sentiment = require('retext-sentiment'); 
   // const example = ["I hate forgetting to bring a book somewhere I definitely should have brought a book to", "This product is not bad at all", "Hai sexy"]
   // var tester = "I am a test"
   // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
-  results.then((tweets)=>{
+  Promise.all(results).then((sixLocTweets)=>{
+    var processor = unified()
+      .use(english)
+      .use(sentiment);
+
+      let tweetArray = []
       var avg = 0
-      tweets.forEach(function (s) {
-        const tree = processor.parse(s);
-        processor.run(tree);
-        const sentenceNode = tree.children[0].data
-        avg += tree.children[0].data.polarity
-        atlantaArr.push(sentenceNode)
-        // console.log(tree.children[0].data)
+      console.log(sixLocTweets)
+      sixLocTweets[0].forEach(function (s,i) {
+          // console.log(`I have run ${i} times`);
+          // console.log(s)
+          const tree = processor.parse(s);
+          processor.run(tree);
+          // console.log(tree)
+
+
+          if(tree.children[0]){
+            const sentenceNode = tree.children[0].data
+            avg += tree.children[0].data.polarity
+            tweetArray.push(sentenceNode)
+          }
+          // // console.log(tree.children[0].data)
+          // console.log(tweetArray.length)
+          avg /= sixLocTweets.length
+        // console.log("average rating: ", avg)
+          tweetArray.push(avg)
+        // console.log("INSIDE LENGTH", tweetArray.length)
+          console.log(tweetArray)
       })
-      avg /= tweets.length
-      // console.log("average rating: ", avg)
-      atlantaArr.push(avg)
-      console.log("INSIDE LENGTH", atlantaArr.length)
+      res.json(tweetArray)
     })
+
+      // console.log(tweetsPromises);
+      // Promise.all(tweetsPromises).then((noWayThisWorkedData)=>{
+      //   console.log("Data is back.");
+      // })
+
+
 
     // ***** return some promises?
     // tweets.map((s)=>{
@@ -90,13 +112,13 @@ for (var i = 0; i < locs.length; i++) {
   // results.then((atlantaArr)=>{
   //   const thing = atlantaArr
   // })
-}
+
 
 
 
 
   // Message Input
-  res.render('index', { title: 'Express' });
+  // res.render('index', { title: 'Express' });
 });
 router.get("/data", function(req, res, next){
   console.log("here go",crap.length)
@@ -104,5 +126,3 @@ router.get("/data", function(req, res, next){
 })
 
 module.exports = router;
-
-
