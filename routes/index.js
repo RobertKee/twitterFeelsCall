@@ -5,6 +5,7 @@ var Twitter = require('twitter-node-client').Twitter
 var twitter = new Twitter();
 var config = require('../config')
 var _ = require('lodash')
+var avgArray = []
 
 //Callback functions
 var error = function (err, response, body) {
@@ -89,11 +90,13 @@ router.get('/', function (req, res, next) {
         // console.log(tweetArray.length)
 
         // console.log("INSIDE LENGTH", tweetArray.length)
-        console.log(tweetArray)
+        // console.log(tweetArray)
       })
+
       avg /= sixLocTweets[j].length
-      tweetArray.push(avg)
-      console.log("average rating: ", avg)
+      avgArray.push(locs[j],avg)
+      console.log("I am the avg array: ",avgArray)
+      console.log(locs[j])
     }
     res.json(tweetArray)
   })
@@ -125,8 +128,8 @@ router.get('/', function (req, res, next) {
   // res.render('index', { title: 'Express' });
 });
 router.get("/data", function (req, res, next) {
-  console.log("here go", crap.length)
-  res.render('data', { data: crap })
+  // console.log("here go", crap.length)
+  res.json(avgArray)
 })
 
 module.exports = router;
