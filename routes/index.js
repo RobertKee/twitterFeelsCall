@@ -4,11 +4,12 @@ var app = express()
 var Twitter = require('twitter-node-client').Twitter
 var twitter = new Twitter();
 var config = require('../config')
+var _ = require('lodash')
 
 //Callback functions
 var error = function (err, response, body) {
   console.log('ERROR [%s]', err);
-  console.log("body: ",body)
+  console.log("body: ", body)
   // console.log("response",response)
 };
 var success = function (data) {
@@ -17,60 +18,70 @@ var success = function (data) {
 };
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
 
-  twitter.accessToken = config.accessToken
-  twitter.accessTokenSecret = config.accessTokenSecret
-  twitter.consumerKey = config.consumerKey
-  twitter.consumerSecret = config.consumerSecret
+  // console.log(config)
+
+  // twitter.accessToken = config.accessToken
+  // twitter.accessTokenSecret = config.accessTokenSecret
+  // twitter.consumerKey = config.consumerKey
+  // twitter.consumerSecret = config.consumerSecret
 
   var long = `34.0521947`
   var lat = `-84.59898900000002`
-  var dist = `100mi`
-
+  var dist = `120mi`
+  // console.log("twitter obj: ", twitter)
   var tweets = []
-
-  // const results = twitter.getSearch({'q':'%40homedepot%20OR%20%23homedepot'},error,success)
-  // const results = twitter.getSearch({'q':'homedepot','geocode':[long,lat,dist]},error,(data)=>{
-  const results = twitter.getCustomApiCall(`/search/tweets.json?q=homedepot&geocode=${long},${lat},${dist}&count=100`,error,success,(data)=>{
-    const array = JSON.parse(data).statuses.map((data, index)=>{
-      console.log(data.id);
-      // console.log(data.text);
-      tweets.push(data.text)
-      // console.log("This many tweets: ", tweets.length)
+  const results = new Promise((resolve, reject)=>{
+    twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
+      const array = JSON.parse(data).statuses.map((data, index) => {
+        tweets.push(data.text)
+      })
+      if(tweets.length === 0){
+        reject("piss off");
+      }else{
+        resolve(tweets)
+      }
     })
   })
 
-  console.log(tweets)
+  
+
+
+
+  // console.log(tweets)
   var inspect = require('unist-util-inspect');
   var unified = require('unified');
   var english = require('retext-english');
-  var sentiment = require('retext-sentiment');var processor = unified()
-  .use(english)
-  .use(sentiment);
+  var sentiment = require('retext-sentiment'); var processor = unified()
+    .use(english)
+    .use(sentiment);
   // const example = ["I hate forgetting to bring a book somewhere I definitely should have brought a book to", "This product is not bad at all", "Hai sexy"]
 
   // var tester = "I am a test"
   var atlantaArr = [];
+  // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
-  function parseText() {
+results.then((tweets)=>{
+  // _.forEach(tweets,function(s) {
+  //   console.log("test: ", s)
+
     tweets.forEach(function (s) {
-      console.log("part 2")
-      atlantaArr.push("i am temp text")
-      const tree = processor.parse(s);    
+      // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+      // atlantaArr.push("i am temp text")
+      const tree = processor.parse(s);
       processor.run(tree);
-      const sentenceNode = tree.children[0].data    
+      const sentenceNode = tree.children[0].data
       atlantaArr.push(sentenceNode)
+      console.log(atlantaArr)
     })
+  })
 
-    // console.log(atlantaArr)
- return atlantaArr;
-  }
-console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-parseText();
-console.log(atlantaArr);
+  
 
-// Message Input
+  // console.log(atlantaArr);
+
+  // Message Input
   res.render('index', { title: 'Express' });
 });
 
