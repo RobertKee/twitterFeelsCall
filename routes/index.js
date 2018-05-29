@@ -16,20 +16,28 @@ var success = function (data) {
   return data;
   // console.log(JSON.parse(data));
 };
-
+var atlantaArr = [];
 /* GET home page. */
 router.get('/', function (req, res, next) {
 
   // console.log(config)
 
-  // twitter.accessToken = config.accessToken
-  // twitter.accessTokenSecret = config.accessTokenSecret
-  // twitter.consumerKey = config.consumerKey
-  // twitter.consumerSecret = config.consumerSecret
-
-  var long = `34.0521947`
-  var lat = `-84.59898900000002`
   var dist = `120mi`
+  
+  var locs = [
+    [43.615852, -116.282355], // idaho gps
+    [48.785569, -122.47977], // washington state
+    [44.441371, -73.118691], // vt thd
+    [25.763267, -80.243685], // miami
+    [32.752141, -117.213786], // san diego
+    [34.0521947, -84.598989], // experimental store
+  ]
+  
+
+for (var i = 0; i < locs.length; i++) {
+
+  var lat = locs[i][0]
+  var long = locs[i][1]
   // console.log("twitter obj: ", twitter)
   var tweets = []
   const results = new Promise((resolve, reject)=>{
@@ -44,11 +52,6 @@ router.get('/', function (req, res, next) {
       }
     })
   })
-
-  
-
-
-
   // console.log(tweets)
   var inspect = require('unist-util-inspect');
   var unified = require('unified');
@@ -57,32 +60,47 @@ router.get('/', function (req, res, next) {
     .use(english)
     .use(sentiment);
   // const example = ["I hate forgetting to bring a book somewhere I definitely should have brought a book to", "This product is not bad at all", "Hai sexy"]
-
   // var tester = "I am a test"
-  var atlantaArr = [];
   // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
 results.then((tweets)=>{
-  // _.forEach(tweets,function(s) {
-  //   console.log("test: ", s)
-
+    var avg = 0
     tweets.forEach(function (s) {
-      // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-      // atlantaArr.push("i am temp text")
       const tree = processor.parse(s);
       processor.run(tree);
       const sentenceNode = tree.children[0].data
+      avg += tree.children[0].data.polarity
       atlantaArr.push(sentenceNode)
-      console.log(atlantaArr)
+      // console.log(tree.children[0].data)
     })
+    avg /= tweets.length
+    // console.log("average rating: ", avg)
+    atlantaArr.push(avg)
+    console.log("INSIDE LENGTH", atlantaArr.length)
   })
+}
+console.log("OUTSIDE LENGTH",atlantaArr.length)
+// const toPush = new Promise((resolve, reject)=>{
+//   if (atlantaArr === undefined){
+//     reject("no good")
+//   }
+//   else{
+//     resolve(atlantaArr)
+//   }
+// })
+// toPush.then((atlantaArr)=> {
+//   console.log("heeeere",atlantaArr)
+//   res.json(atlantaArr)
+// })
+  // Promise.all(atlantaArr).then((resovle, reject)=>{
 
-  
+  // })
 
-  // console.log(atlantaArr);
 
   // Message Input
   res.render('index', { title: 'Express' });
 });
 
 module.exports = router;
+
+
