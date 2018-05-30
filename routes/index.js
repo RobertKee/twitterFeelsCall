@@ -1,11 +1,11 @@
 var express = require('express');
 var router = express.Router();
-var app = express()
+var app = express();
 var Twitter = require('twitter-node-client').Twitter
 var twitter = new Twitter();
-var config = require('../config')
-var _ = require('lodash')
-var avgArray = []
+var config = require('../config');
+var _ = require('lodash');
+var avgArray = [];
 
 //Callback functions
 var error = function (err, response, body) {
@@ -23,7 +23,7 @@ router.get('/', function (req, res, next) {
 
   // console.log(config)
 
-  var dist = `120mi`
+  var dist = `120mi`;
 
   var locs = [
     [43.615852, -116.282355], // idaho gps
@@ -32,19 +32,19 @@ router.get('/', function (req, res, next) {
     [25.763267, -80.243685], // miami
     [32.752141, -117.213786], // san diego
     [34.0521947, -84.598989], // experimental store
-  ]
+  ];
 
   const atlantaArr = [];
   const results = locs.map((locData, i) => {
     return new Promise((resolve, reject) => {
-      var lat = locs[i][0]
-      var long = locs[i][1]
+      var lat = locs[i][0];
+      var long = locs[i][1];
       // console.log("twitter obj: ", twitter)
-      var tweets = []
+      var tweets = [];
       twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
         const array = JSON.parse(data).statuses.map((data, index) => {
           tweets.push(data.text)
-        })
+        });
         if (tweets.length === 0) {
           reject("there are no tweets");
         } else {
@@ -68,11 +68,11 @@ router.get('/', function (req, res, next) {
       .use(english)
       .use(sentiment);
 
-    let tweetArray = []
+    let tweetArray = [];
     var avg = 0
     // console.log(sixLocTweets)
     for (var j = 0; j < sixLocTweets.length; j++) {
-      avg = 0
+      avg = 0;
       sixLocTweets[j].forEach(function (s, i) {
         // console.log(`I have run ${i} times`);
         // console.log(s)
@@ -81,8 +81,8 @@ router.get('/', function (req, res, next) {
         // console.log(tree)
 
         if (tree.children[0]) {
-          const sentenceNode = tree.children[0].data
-          avg += tree.children[0].data.polarity
+          const sentenceNode = tree.children[0].data;
+          avg += tree.children[0].data.polarity;
           tweetArray.push(sentenceNode)
         }
 
@@ -91,15 +91,15 @@ router.get('/', function (req, res, next) {
 
         // console.log("INSIDE LENGTH", tweetArray.length)
         // console.log(tweetArray)
-      })
+      });
 
-      avg /= sixLocTweets[j].length
-      avgArray.push(locs[j],avg)
-      console.log("I am the avg array: ",avgArray)
+      avg /= sixLocTweets[j].length;
+      avgArray.push(locs[j],avg);
+      console.log("I am the avg array: ",avgArray);
       console.log(locs[j])
     }
-    res.json(tweetArray)
-  })
+    res.json({tweetArray, avgArray})
+  });
 
   // console.log(tweetsPromises);
   // Promise.all(tweetsPromises).then((noWayThisWorkedData)=>{
@@ -126,10 +126,12 @@ router.get('/', function (req, res, next) {
 
   // Message Input
   // res.render('index', { title: 'Express' });
+    router.get("/data", function (req, res, next) {
+        // console.log("here go", crap.length)
+        res.json(avgArray)
+    });
+
 });
-router.get("/data", function (req, res, next) {
-  // console.log("here go", crap.length)
-  res.json(avgArray)
-})
+
 
 module.exports = router;
