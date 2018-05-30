@@ -22,7 +22,8 @@ var success = function (data) {
 router.get('/', function (req, res, next) {
 
   // console.log(config)
-
+  var atlantaArr = [];
+  var avgArray = [];
   var dist = `120mi`;
 
   var locs = [
@@ -34,14 +35,14 @@ router.get('/', function (req, res, next) {
     [34.0521947, -84.598989], // experimental store
   ];
 
-  const atlantaArr = [];
+  
   const results = locs.map((locData, i) => {
     return new Promise((resolve, reject) => {
       var lat = locs[i][0];
       var long = locs[i][1];
       // console.log("twitter obj: ", twitter)
       var tweets = [];
-      twitter.getSearch({ 'q': 'homedepot', 'count': 100, lat, long, dist }, error, (data) => {
+      twitter.getSearch({ 'q': 'homedepot', 'count': 100, 'geocode': `${lat},${long},${dist}`}, error, (data) => {
         const array = JSON.parse(data).statuses.map((data, index) => {
           tweets.push(data.text)
         });
@@ -96,9 +97,9 @@ router.get('/', function (req, res, next) {
       avg /= sixLocTweets[j].length;
       avgArray.push(locs[j],avg);
       console.log("I am the avg array: ",avgArray);
-      console.log(locs[j])
+      // console.log(locs[j])
     }
-    res.json({tweetArray, avgArray})
+    res.json({twetArray, avgArray})
   });
 
   // console.log(tweetsPromises);
