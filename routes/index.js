@@ -100,8 +100,9 @@ router.get('/', function (req, res, next) {
       
       // console.log(locs[j])
     }
-    console.log("I am the avg array: ",avgArray);
-    res.json({tweetArray, avgArray,tweets})
+
+    res.json({tweetArray, avgArray})
+
   });
 
   // console.log(tweetsPromises);
