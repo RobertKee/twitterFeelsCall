@@ -42,7 +42,7 @@ router.get('/', function (req, res, next) {
       var lat = locs[i][0];
       var long = locs[i][1];
       // console.log("twitter obj: ", twitter)
-      // var tweets = [];
+      var tweets = [];
       twitter.getSearch({ 'q': 'homedepot', 'count': 100, 'geocode': `${lat},${long},${dist}`}, error, (data) => {
         const array = JSON.parse(data).statuses.map((data, index) => {
           tweets.push(data.text)
